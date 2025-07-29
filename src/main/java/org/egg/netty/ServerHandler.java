@@ -33,7 +33,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        System.out.println(msg);
+        System.out.println(ctx.name() + "-----" + msg);
         ctx.writeAndFlush(String.format("[%s] %s", simpleDateFormat.format(new Date()), msg));
         number.addAndGet(1);
         ctx.fireChannelRead(msg);

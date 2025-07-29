@@ -37,15 +37,18 @@ public class EchoServer {
                     @Override
                     protected void initChannel(Channel ch) {
                         ch.pipeline()
+                                .addLast("shareCount", new ShareCountHandler())
                                 .addLast("decoder", new StringDecoder(CharsetUtil.UTF_8))
+
+                                .addLast("handlerA", new SimpleInboundHandler("A"))
+                                .addLast("handlerB", new SimpleInboundHandler("B"))
+                                .addLast("handlerC", new SimpleInboundHandler("C"))
+                                .addLast("handlerD", new SimpleInboundHandler("D"))
+
                                 .addLast("encoder", new StringEncoder(CharsetUtil.UTF_8))
-                                .addLast("read-count-handler", new ReadCountHandler())
-                                .addLast("server-handler", new ServerHandler(number))
-                                .addLast("server-handler-A", new ServerHandlerA())
-                                .addLast("server-handler-B", new ServerHandlerB())
-                                .addLast("server-handler-C", new ServerHandlerC())
-                                .addLast("server-handler-D", new ServerHandlerD())
-                                .addLast("server-handler-E", new ServerHandlerE())
+
+                                .addLast("outHandlerX", new SimpleOutboundHandler("X"))
+                                .addLast("outHandlerY", new SimpleOutboundHandler("Y"))
 
                         ;
                     }
