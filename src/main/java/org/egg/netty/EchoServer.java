@@ -7,11 +7,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
-import org.egg.netty.pipeline.ServerHandlerA;
-import org.egg.netty.pipeline.ServerHandlerB;
-import org.egg.netty.pipeline.ServerHandlerC;
-import org.egg.netty.pipeline.ServerHandlerD;
-import org.egg.netty.pipeline.ServerHandlerE;
+import org.egg.netty.pipeline.*;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,14 +37,15 @@ public class EchoServer {
                     @Override
                     protected void initChannel(Channel ch) {
                         ch.pipeline()
-                                .addLast(new StringDecoder(CharsetUtil.UTF_8))
-                                .addLast(new StringEncoder(CharsetUtil.UTF_8))
-                                .addLast(new ServerHandler(number))
-                                .addLast(new ServerHandlerA())
-                                .addLast(new ServerHandlerB())
-                                .addLast(new ServerHandlerC())
-                                .addLast(new ServerHandlerD())
-                                .addLast(new ServerHandlerE())
+                                .addLast("decoder", new StringDecoder(CharsetUtil.UTF_8))
+                                .addLast("encoder", new StringEncoder(CharsetUtil.UTF_8))
+                                .addLast("read-count-handler", new ReadCountHandler())
+                                .addLast("server-handler", new ServerHandler(number))
+                                .addLast("server-handler-A", new ServerHandlerA())
+                                .addLast("server-handler-B", new ServerHandlerB())
+                                .addLast("server-handler-C", new ServerHandlerC())
+                                .addLast("server-handler-D", new ServerHandlerD())
+                                .addLast("server-handler-E", new ServerHandlerE())
 
                         ;
                     }
