@@ -7,6 +7,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
+import org.egg.netty.pipeline.ServerHandlerA;
+import org.egg.netty.pipeline.ServerHandlerB;
+import org.egg.netty.pipeline.ServerHandlerC;
+import org.egg.netty.pipeline.ServerHandlerD;
+import org.egg.netty.pipeline.ServerHandlerE;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,6 +44,11 @@ public class EchoServer {
                                 .addLast(new StringDecoder(CharsetUtil.UTF_8))
                                 .addLast(new StringEncoder(CharsetUtil.UTF_8))
                                 .addLast(new ServerHandler(number))
+                                .addLast(new ServerHandlerA())
+                                .addLast(new ServerHandlerB())
+                                .addLast(new ServerHandlerC())
+                                .addLast(new ServerHandlerD())
+                                .addLast(new ServerHandlerE())
 
                         ;
                     }

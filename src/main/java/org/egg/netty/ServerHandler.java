@@ -36,5 +36,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         System.out.println(msg);
         ctx.writeAndFlush(String.format("[%s] %s", simpleDateFormat.format(new Date()), msg));
         number.addAndGet(1);
+        ctx.fireChannelRead(msg);
     }
 }

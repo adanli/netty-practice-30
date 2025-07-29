@@ -7,6 +7,11 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
+import org.egg.netty.pipeline.ClientHandlerA;
+import org.egg.netty.pipeline.ClientHandlerB;
+import org.egg.netty.pipeline.ClientHandlerC;
+import org.egg.netty.pipeline.ClientHandlerD;
+import org.egg.netty.pipeline.ClientHandlerE;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -34,6 +39,11 @@ public class EchoClient {
                         ch.pipeline()
                                 .addLast(new StringDecoder(CharsetUtil.UTF_8))
                                 .addLast(new StringEncoder(CharsetUtil.UTF_8))
+                                .addLast(new ClientHandlerA())
+                                .addLast(new ClientHandlerB())
+                                .addLast(new ClientHandlerC())
+                                .addLast(new ClientHandlerD())
+                                .addLast(new ClientHandlerE())
                                 .addLast(new ClientHandler())
                         ;
                     }
