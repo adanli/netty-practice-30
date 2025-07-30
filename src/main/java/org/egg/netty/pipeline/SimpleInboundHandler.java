@@ -43,6 +43,7 @@ public class SimpleInboundHandler extends ChannelInboundHandlerAdapter {
 
         // 模拟出站操作
         switch (this.name) {
+            case "A" -> ctx.pipeline().addAfter(ctx.name(), "handler-Add-After", new SimpleInboundHandler("handler-add-after"));
             case "C" -> {
                 logger.info(this.name + " trigger outbound write");
                 ctx.channel().writeAndFlush("Response from " + this.name);
@@ -53,7 +54,6 @@ public class SimpleInboundHandler extends ChannelInboundHandlerAdapter {
                     logger.info(this.name + " reverse message: " + reverseStr);
                 }
             }
-            case "A" -> ctx.pipeline().addAfter(ctx.name(), "handler-Add-After", new SimpleInboundHandler("handler-add-after"));
 //            case "B" -> throw new RuntimeException("随机抛出异常");
         }
         ctx.fireChannelRead(modifyMsg);
