@@ -20,13 +20,13 @@ public class SimpleOutboundHandler extends ChannelOutboundHandlerAdapter {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
         logger.info(this.name + " writing message: " + msg);
 
         try {
             // 修改消息
             String modifyMessage = String.format("{%s}", msg);
-            ctx.write(modifyMessage);
+            ctx.writeAndFlush(modifyMessage);
 
         } finally {
             promise.setSuccess();

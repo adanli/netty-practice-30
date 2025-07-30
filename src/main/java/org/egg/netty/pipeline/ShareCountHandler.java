@@ -14,16 +14,18 @@ public class ShareCountHandler extends ChannelInboundHandlerAdapter {
     private final AtomicInteger number = new AtomicInteger(0);
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         int count = number.incrementAndGet();
         logger.info(ctx.name() + " total messages: " + count);
+
+//        logger.info("names: " + String.join(", ", ctx.pipeline().names()));
 
         ctx.fireChannelRead(msg);
 
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.log(Level.WARNING, "error count", cause);
         ctx.close();
     }

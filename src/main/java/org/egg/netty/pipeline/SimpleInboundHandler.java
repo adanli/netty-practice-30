@@ -15,51 +15,53 @@ public class SimpleInboundHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) {
         logger.info(this.name + " Added to pipeline");
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         logger.info(this.name + " Remove from pipeline");
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         logger.info(this.name + " Channel Active");
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         logger.info(this.name + " Channel Inactive");
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         // 1. 修改消息内容
         logger.info(this.name + " receive message: " + msg);
 
         String modifyMsg = String.format("[%s]", msg);
-        ctx.fireChannelRead(modifyMsg);
 
         // 模拟出站操作
-        if(this.name.equals("C")) {
-            logger.info(this.name + " trigger outbound write");
-            ctx.channel().writeAndFlush("Response from " + this.name);
-        } else if(this.name.equals("D")) {
-            if(msg instanceof String str) {
-                String reverseStr = this.reverse(str);
-                logger.info(this.name + " reverse message: " + reverseStr);
-                ctx.fireChannelRead(reverseStr);
+        switch (this.name) {
+            case "C" -> {
+                logger.info(this.name + " trigger outbound write");
+                ctx.channel().writeAndFlush("Response from " + this.name);
             }
-        } else if(this.name.equals("B")) {
-            throw new RuntimeException("随机抛出异常");
+            case "D" -> {
+                if(msg instanceof String str) {
+                    String reverseStr = this.reverse(str);
+                    logger.info(this.name + " reverse message: " + reverseStr);
+                }
+            }
+            case "A" -> ctx.pipeline().addAfter(ctx.name(), "handler-Add-After", new SimpleInboundHandler("handler-add-after"));
+//            case "B" -> throw new RuntimeException("随机抛出异常");
         }
+        ctx.fireChannelRead(modifyMsg);
 
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.log(Level.WARNING, this.name + " error", cause);
         ctx.close();
     }

@@ -39,16 +39,18 @@ public class EchoServer {
                         ch.pipeline()
                                 .addLast("shareCount", new ShareCountHandler())
                                 .addLast("decoder", new StringDecoder(CharsetUtil.UTF_8))
+                                .addLast("encoder", new StringEncoder(CharsetUtil.UTF_8))
 
                                 .addLast("handlerA", new SimpleInboundHandler("A"))
                                 .addLast("handlerB", new SimpleInboundHandler("B"))
                                 .addLast("handlerC", new SimpleInboundHandler("C"))
                                 .addLast("handlerD", new SimpleInboundHandler("D"))
 
-                                .addLast("encoder", new StringEncoder(CharsetUtil.UTF_8))
+
 
                                 .addLast("outHandlerX", new SimpleOutboundHandler("X"))
                                 .addLast("outHandlerY", new SimpleOutboundHandler("Y"))
+                                .addLast("duplex", new DuplexHandler("duplex"))
 
                         ;
                     }
