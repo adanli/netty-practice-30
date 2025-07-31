@@ -1,8 +1,6 @@
 package org.egg.netty.bytebuf;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.*;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 
@@ -15,7 +13,7 @@ public class ByteBufDemoServer {
     private static final Logger logger = Logger.getLogger(ByteBufDemoServer.class.getName());
 //    private final static int PORT = 8088;
     private final static int DATA_SIZE = 1024*1024;
-    private final static int TEST_ITERATIONS = 10000;
+    private final static int TEST_ITERATIONS = 1000;
     private final static Random random = new Random();
 
     static {
@@ -48,37 +46,17 @@ public class ByteBufDemoServer {
         long pooledDirectAllocTime = testAllocation(() -> PooledByteBufAllocator.DEFAULT.directBuffer(DATA_SIZE), TEST_ITERATIONS);
         logger.info(String.format("池化直接内存分配时间: %sms (平均: %sms/次)", pooledDirectAllocTime, pooledDirectAllocTime/(double)TEST_ITERATIONS));
 
+        // 测试5: CompositeByteBuf性能
+//        long compositeAllocTime = testCompositeByteBuf(TEST_ITERATIONS);
+//        logger.info(String.format("合并内存分配时间: %sms (平均: %sms/次)", compositeAllocTime, compositeAllocTime/(double)TEST_ITERATIONS));
 
     }
 
-    /*public static long testAllocation(ByteBuf buf, int iterations) {
-        long start = System.currentTimeMillis();
-        for (int i=0; i<iterations; i++) {
-            try {
-                    // 写入数据
-                    for(int j=0; j<DATA_SIZE; j++) {
-                        buf.writeByte(random.nextInt(256));
-                    }
-
-                    // 读取数据
-                    buf.readerIndex(0);
-                    while (buf.isReadable()) {
-                        buf.readByte();
-                    }
-    //                System.out.println("第"+i+"次");
-            } finally {
-                // 释放缓冲区
-                ReferenceCountUtil.release(buf);
-            }
-        }
-
-
-        return System.currentTimeMillis() - start;
-    }*/
-
     public static long testAllocation(Supplier<ByteBuf> bufSuppliers, int iterations) {
-        long start = System.currentTimeMillis();
+        byte[] bytes = new byte[DATA_SIZE];
+        random.nextBytes(bytes);
 
+        long start = System.currentTimeMillis();
         for (int i=0; i<iterations; i++) {
             ByteBuf buf = null;
 
@@ -86,19 +64,9 @@ public class ByteBufDemoServer {
                 buf = bufSuppliers.get();
                 if(buf == null) continue;
 
-                byte[] bytes = new byte[DATA_SIZE];
-                random.nextBytes(bytes);
-                /*for (int j=0; j<DATA_SIZE; j++) {
-//                    buf.writeByte(random.nextInt(256));
-                    buf.writeBytes(bytes);
-
-                    buf.readerIndex(0);
-                    while (buf.isReadable()) {
-//                        buf.readByte();
-                        buf.readBytes(bytes);
-                    }
-                }*/
                 buf.writeBytes(bytes);
+
+                buf.readerIndex(0);
                 while (buf.isReadable()) {
                     buf.readBytes(bytes);
                 }
@@ -112,6 +80,36 @@ public class ByteBufDemoServer {
 
         return System.currentTimeMillis() - start;
 
+    }
+
+    private static long testCompositeByteBuf(int iterations) {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < iterations; i++) {
+            CompositeByteBuf compositeByteBuf = ByteBufAllocator.DEFAULT.compositeBuffer();
+            try {
+                // 添加多个缓冲区
+                for (int j=0; j<10; j++) {
+                    ByteBuf part = Unpooled.buffer(DATA_SIZE/10);
+                    byte[] bytes = new byte[DATA_SIZE/10];
+                    random.nextBytes(bytes);
+                    part.writeBytes(bytes);
+                    compositeByteBuf.addComponent(true, part);
+                }
+
+
+                compositeByteBuf.readerIndex(0);
+                while (compositeByteBuf.isReadable()) {
+                    compositeByteBuf.readableBytes();
+                }
+
+            } finally {
+//                compositeByteBuf.release();
+                ReferenceCountUtil.release(compositeByteBuf);
+            }
+
+        }
+
+        return System.currentTimeMillis() - start;
     }
 
 
