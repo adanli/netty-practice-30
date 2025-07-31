@@ -14,8 +14,8 @@ import java.util.logging.Logger;
 public class ByteBufDemoServer {
     private static final Logger logger = Logger.getLogger(ByteBufDemoServer.class.getName());
 //    private final static int PORT = 8088;
-    private final static int DATA_SIZE = 1024*10;
-    private final static int TEST_ITERATIONS = 10;
+    private final static int DATA_SIZE = 1024*1024;
+    private final static int TEST_ITERATIONS = 10000;
     private final static Random random = new Random();
 
     static {
@@ -33,19 +33,19 @@ public class ByteBufDemoServer {
         logger.info("========= 内存性能对比测试 =========");
 
         // 测试1：堆内存分配与读写
-        long heapAllocTime = testAllocation(() -> ByteBufAllocator.DEFAULT.heapBuffer(TEST_ITERATIONS*DATA_SIZE), TEST_ITERATIONS);
+        long heapAllocTime = testAllocation(() -> ByteBufAllocator.DEFAULT.heapBuffer(DATA_SIZE), TEST_ITERATIONS);
         logger.info(String.format("堆内存分配时间: %sms (平均: %sms/次)", heapAllocTime, heapAllocTime/(double)TEST_ITERATIONS));
 
         // 测试2：直接内存分配与读写
-        long directAllocTime = testAllocation(() -> ByteBufAllocator.DEFAULT.directBuffer(TEST_ITERATIONS*DATA_SIZE), TEST_ITERATIONS);
+        long directAllocTime = testAllocation(() -> ByteBufAllocator.DEFAULT.directBuffer(DATA_SIZE), TEST_ITERATIONS);
         logger.info(String.format("直接内存分配时间: %sms (平均: %sms/次)", directAllocTime, directAllocTime/(double)TEST_ITERATIONS));
 
         // 测试3：池化堆内存分配与读写
-        long pooledHeapAllocTime = testAllocation(() -> PooledByteBufAllocator.DEFAULT.heapBuffer(TEST_ITERATIONS*DATA_SIZE), TEST_ITERATIONS);
+        long pooledHeapAllocTime = testAllocation(() -> PooledByteBufAllocator.DEFAULT.heapBuffer(DATA_SIZE), TEST_ITERATIONS);
         logger.info(String.format("池化堆内存分配时间: %sms (平均: %sms/次)", pooledHeapAllocTime, pooledHeapAllocTime/(double)TEST_ITERATIONS));
 
         // 测试4：池化直接内存分配与读写
-        long pooledDirectAllocTime = testAllocation(() -> PooledByteBufAllocator.DEFAULT.directBuffer(TEST_ITERATIONS*DATA_SIZE), TEST_ITERATIONS);
+        long pooledDirectAllocTime = testAllocation(() -> PooledByteBufAllocator.DEFAULT.directBuffer(DATA_SIZE), TEST_ITERATIONS);
         logger.info(String.format("池化直接内存分配时间: %sms (平均: %sms/次)", pooledDirectAllocTime, pooledDirectAllocTime/(double)TEST_ITERATIONS));
 
 
@@ -88,7 +88,7 @@ public class ByteBufDemoServer {
 
                 byte[] bytes = new byte[DATA_SIZE];
                 random.nextBytes(bytes);
-                for (int j=0; j<DATA_SIZE; j++) {
+                /*for (int j=0; j<DATA_SIZE; j++) {
 //                    buf.writeByte(random.nextInt(256));
                     buf.writeBytes(bytes);
 
@@ -97,6 +97,10 @@ public class ByteBufDemoServer {
 //                        buf.readByte();
                         buf.readBytes(bytes);
                     }
+                }*/
+                buf.writeBytes(bytes);
+                while (buf.isReadable()) {
+                    buf.readBytes(bytes);
                 }
 
             } finally {
