@@ -97,6 +97,7 @@ public class CustomCodecDemo {
                     .channel(NioSocketChannel.class)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
+
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
                                     // 空闲状态监测，3秒写空闲
