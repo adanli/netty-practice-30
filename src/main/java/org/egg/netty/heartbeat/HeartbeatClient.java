@@ -104,11 +104,9 @@ public class HeartbeatClient {
 
                     } else {
                         System.err.println("达到最大重连次数, 停止尝试");
-                        try {
-                            future.channel().close().sync();
-                        } finally {
-                            future.channel().eventLoop().shutdownGracefully().sync();
-                        }
+
+                        future.channel().close();
+                        bootstrap.config().group().shutdownGracefully();
                     }
 
 
