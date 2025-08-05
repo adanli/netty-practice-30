@@ -43,10 +43,11 @@ public class FileServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, raf.length());
 
-        ctx.write(response);
-        ctx.write(new ChunkedFile(raf), ctx.newProgressivePromise());
-        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+//        ctx.write(response);
+//        ctx.write(new ChunkedFile(raf));
+//        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
 //                .addListener(ChannelFutureListener.CLOSE)
+        ctx.writeAndFlush(response);
         ;
 
     }

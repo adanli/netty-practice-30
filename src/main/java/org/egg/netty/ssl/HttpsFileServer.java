@@ -21,7 +21,8 @@ import java.nio.file.Files;
 import java.security.KeyStore;
 
 public class HttpsFileServer {
-    private final static File FILE = new File("/Users/adan/code/egg/netty-practice-30/src/main/resources/secret-document.txt");
+    private final static File FILE = new File("D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources\\secret-document.txt");
+//    private final static File FILE = new File("/Users/adan/code/egg/netty-practice-30/src/main/resources/secret-document.txt");
 
     static {
         try {
