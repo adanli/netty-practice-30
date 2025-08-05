@@ -1,13 +1,13 @@
 package org.egg.netty.rpc.entity;
 
 public class RpcResponse extends RpcMessage{
-    private final String result;
+    private final Object result;
 
-    public RpcResponse(String result) {
+    public RpcResponse(Object result) {
         this.result = result;
     }
 
-    public String getResult() {
+    public Object getResult() {
         return result;
     }
 

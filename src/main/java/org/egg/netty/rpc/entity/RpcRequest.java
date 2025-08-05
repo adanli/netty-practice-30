@@ -15,6 +15,7 @@ public class RpcRequest extends RpcMessage{
     }
 
     public RpcRequest(String className, String method, Object[] args) {
+        this.className = className;
         this.method = method;
         this.args = args;
     }

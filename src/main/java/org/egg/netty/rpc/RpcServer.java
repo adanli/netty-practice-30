@@ -7,11 +7,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.egg.netty.rpc.codec.RpcDecoder;
 import org.egg.netty.rpc.codec.RpcEncoder;
 import org.egg.netty.rpc.handler.RpcServerHandler;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -27,8 +29,10 @@ public class RpcServer {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
+                        protected void initChannel(SocketChannel ch) {
                             ch.pipeline()
+                                    .addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS))
+
                                     .addLast(new RpcEncoder())
                                     .addLast(new RpcDecoder())
                                     .addLast(new RpcServerHandler())
