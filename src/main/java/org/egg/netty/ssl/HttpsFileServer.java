@@ -5,11 +5,14 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.egg.netty.ssl.handler.EchoServerHandler;
+import org.egg.netty.ssl.handler.FileServerHandler;
 
 import javax.net.ssl.KeyManagerFactory;
 import java.io.File;
@@ -44,13 +47,13 @@ public class HttpsFileServer {
                         ch.pipeline()
                                 .addLast(sslContext.newHandler(ch.alloc()))
 
-//                                .addLast(new HttpServerCodec())
-//                                .addLast(new HttpObjectAggregator(65535))
-//                                .addLast(new FileServerHandler(FILE))
+                                .addLast(new HttpServerCodec())
+                                .addLast(new HttpObjectAggregator(65535))
+                                .addLast(new FileServerHandler(FILE))
 
-                                .addLast(new StringDecoder())
-                                .addLast(new StringEncoder())
-                                .addLast(new EchoServerHandler())
+//                                .addLast(new StringDecoder())
+//                                .addLast(new StringEncoder())
+//                                .addLast(new EchoServerHandler())
 
                                 ;
                     }

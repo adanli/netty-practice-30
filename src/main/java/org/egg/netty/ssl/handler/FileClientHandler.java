@@ -34,7 +34,7 @@ public class FileClientHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println("客户端异常");
+        System.err.println("客户端异常: " + cause);
         ctx.close();
     }
 }
