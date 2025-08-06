@@ -6,3 +6,4 @@ keytool -exportcert -keystore server.p12 -storepass serverpass   -alias server -
 
 -- client
 keytool -importcert -file server.cer -alias server   -keystore client-truststore.p12 -storepass clientpass   -storetype PKCS12 -noprompt
+
