@@ -40,7 +40,8 @@ public class FileServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         }
 
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+//        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, raf.length());
 
         ctx.write(response);

@@ -11,6 +11,7 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.egg.netty.ssl.handler.EchoServerHandler;
 import org.egg.netty.ssl.handler.FileServerHandler;
 
@@ -49,6 +50,7 @@ public class HttpsFileServer {
 
                                 .addLast(new HttpServerCodec())
                                 .addLast(new HttpObjectAggregator(65535))
+                                .addLast(new ChunkedWriteHandler())
                                 .addLast(new FileServerHandler(FILE))
 
 //                                .addLast(new StringDecoder())

@@ -8,8 +8,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.egg.netty.ssl.handler.FileClientHandler;
 
 import javax.net.ssl.TrustManagerFactory;
@@ -30,8 +33,11 @@ public class HttpsFileClient {
                         ch.pipeline()
                                 .addLast(sslContext.newHandler(ch.alloc()))
 
+                                .addLast(new LoggingHandler(LogLevel.INFO))
+
                                 .addLast(new HttpClientCodec())
                                 .addLast(new HttpObjectAggregator(65535))
+                                .addLast(new ChunkedWriteHandler())
                                 .addLast(new FileClientHandler())
 
 //                                .addLast(new StringDecoder())
