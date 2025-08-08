@@ -38,7 +38,7 @@ public class HttpServer {
                             ch.pipeline()
 //                                    .addLast(new LoggingHandler(LogLevel.INFO))
 
-                                    .addLast(sslContext.newHandler(ch.alloc()))
+//                                    .addLast(sslContext.newHandler(ch.alloc()))
 
                                     .addLast(new HttpServerCodec())
                                     .addLast(new HttpObjectAggregator(65535))
