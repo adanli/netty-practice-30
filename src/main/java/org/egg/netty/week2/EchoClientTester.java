@@ -22,7 +22,7 @@ public class EchoClientTester {
     private static final String HOST = "localhost";
     private static final int PORT = 8088;
     private static final int CLIENT_COUNT = 100;
-    private static final int MESSAGE_PER_CLIENT = 100;
+    private static final int MESSAGE_PER_CLIENT = 500;
 
     private static final AtomicInteger SUCCESS_COUNT = new AtomicInteger(0);
 
@@ -59,7 +59,7 @@ public class EchoClientTester {
                             channel.writeAndFlush(msg).sync();
                         }
 
-                        System.out.println(channel.remoteAddress() + "完成，准备断开连接");
+//                        System.out.println(channel.remoteAddress() + "完成，准备断开连接");
                         channel.close().sync();
                         SUCCESS_COUNT.incrementAndGet();
 

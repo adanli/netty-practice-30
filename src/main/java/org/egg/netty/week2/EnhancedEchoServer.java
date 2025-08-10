@@ -11,6 +11,7 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.SingleThreadEventExecutor;
+import org.egg.netty.week2.handler.DiagnosticInterceptor;
 import org.egg.netty.week2.handler.EnhancedEchoServerHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +44,7 @@ public class EnhancedEchoServer {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
                                     // 诊断连接器
-//                                    .addLast(new DiagnosticInterceptor())
+                                    .addLast(new DiagnosticInterceptor())
 
                                     .addLast(new LineBasedFrameDecoder(256))
 
@@ -89,7 +90,7 @@ public class EnhancedEchoServer {
 
             while (true) {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(500);
 
                     int connectionCount = CONNECTION_COUNT.get();
                     // 计算消息速率

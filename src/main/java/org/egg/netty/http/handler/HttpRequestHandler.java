@@ -40,7 +40,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
          .addListener((ChannelFutureListener) future -> {
              System.out.println("文件传输完成");
-             future.channel().close();
+//             future.channel().close();
          });
 
     }

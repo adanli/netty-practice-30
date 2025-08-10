@@ -10,11 +10,12 @@ public class DiagnosticInterceptor extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         // 诊断日志
 //        System.out.println("[诊断日志] - 接收消息: " + msg.toString().trim());
-        try {
+        /*try {
             ctx.fireChannelRead(msg);
         } finally {
             ReferenceCountUtil.release(msg);
-        }
+        }*/
+        ctx.fireChannelRead(msg);
     }
 
     @Override

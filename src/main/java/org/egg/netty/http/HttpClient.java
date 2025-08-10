@@ -34,10 +34,10 @@ public class HttpClient {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(sslContext.newHandler(ch.alloc()))
+//                                    .addLast(sslContext.newHandler(ch.alloc()))
 
                                     .addLast(new HttpClientCodec())
-                                    .addLast(new HttpObjectAggregator(65535))
+                                    .addLast(new HttpObjectAggregator(100*1024*1024))
 
                                     .addLast(new ChunkedWriteHandler())
 

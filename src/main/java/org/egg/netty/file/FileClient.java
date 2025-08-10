@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStore;
 
 public class FileClient {
-    private static final String SAVE_PATH = "/Users/adan/code/egg/netty-practice-30/src/main/resources/";
+    private static final String SAVE_PATH = "D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources";
 
    private static final String HOST = "localhost";
     private static final int PORT = 8088;
@@ -55,7 +55,8 @@ public class FileClient {
             });
 
             Channel channel = cf.channel();
-            channel.writeAndFlush("/Users/adan/code/egg/netty-practice-30/src/main/resources/secret-document.txt");
+            channel.writeAndFlush("E:\\数据\\TEYUE.txt");
+//            channel.writeAndFlush("D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources\\secret-document.txt");
 
             channel.closeFuture().sync();
 

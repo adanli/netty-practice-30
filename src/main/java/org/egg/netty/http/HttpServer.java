@@ -20,7 +20,8 @@ import java.io.InputStream;
 import java.security.KeyStore;
 
 public class HttpServer {
-    private final static String FILE_PATH = "D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources\\secret-document.txt";
+    private final static String FILE_PATH = "E:\\数据\\TEYUE.txt";
+//    private final static String FILE_PATH = "D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources\\secret-document.txt";
 
     public static void main(String[] args) throws Exception{
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -41,7 +42,7 @@ public class HttpServer {
 //                                    .addLast(sslContext.newHandler(ch.alloc()))
 
                                     .addLast(new HttpServerCodec())
-                                    .addLast(new HttpObjectAggregator(65535))
+                                    .addLast(new HttpObjectAggregator(100*1024*1024))
 
                                     .addLast(new ChunkedWriteHandler())
 
