@@ -8,7 +8,8 @@ import java.io.File;
 import java.io.RandomAccessFile;
 
 public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private static final String DIR_PATH = "D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources";
+    private static final String DIR_PATH = "/Users/adan/code/egg/netty-practice-30/src/main/resources";
+//    private static final String DIR_PATH = "D:\\code\\java\\practice\\netty-practice-30\\src\\main\\resources";
     private RandomAccessFile raf;
 
     @Override

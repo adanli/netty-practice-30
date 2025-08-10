@@ -11,7 +11,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.ThreadPerTaskExecutor;
 import org.egg.netty.httpfile.handler.HttpFileServerHandler;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * 实现一个高性能的HTTP文件服务器，通过以下优化手段提升性能：
@@ -27,7 +32,7 @@ public class HttpFileServer {
         System.out.printf("核心数量: %d%n", cores);
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(cores*2);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(cores*2, new DefaultThreadFactory("worker"));
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
