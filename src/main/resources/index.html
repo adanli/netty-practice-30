@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时股票行情 - Netty WebSocket实现</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f8fa; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #1e88e5; color: white; padding: 20px; text-align: center; margin-bottom: 30px; border-radius: 8px; }
+        h1 { margin-bottom: 10px; }
+        .subtitle { opacity: 0.8; font-size: 1.1rem; }
+
+        .dashboard { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        .main-content { display: flex; flex-direction: column; gap: 20px; }
+
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; }
+        .card-title { font-size: 1.2rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+
+        .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .stock-card { padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; transition: all 0.3s; }
+        .stock-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .stock-symbol { font-weight: bold; font-size: 1.1rem; }
+        .stock-price { font-size: 1.4rem; font-weight: bold; margin: 5px 0; }
+        .stock-change { display: inline-block; padding: 3px 8px; border-radius: 4px; }
+        .positive { color: #4caf50; background: rgba(76, 175, 80, 0.1); }
+        .negative { color: #f44336; background: rgba(244, 67, 54, 0.1); }
+
+        .controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select, button { padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #1e88e5; color: white; border: none; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #1976d2; }
+
+        #chart-container { height: 300px; }
+
+        .status { padding: 15px; text-align: center; margin-top: 10px; border-radius: 4px; }
+        .connected { background: #e8f5e9; color: #2e7d32; }
+        .disconnected { background: #ffebee; color: #c62828; }
+
+        .log { max-height: 300px; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 4px; font-family: monospace; }
+        .log-entry { padding: 5px 0; border-bottom: 1px solid #eee; }
+
+        footer { text-align: center; margin-top: 40px; color: #777; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>实时股票行情推送系统</h1>
+            <div class="subtitle">基于Netty WebSocket实现的实时金融数据推送</div>
+        </header>
+
+        <div class="dashboard">
+            <div class="main-content">
+                <div class="card">
+                    <h2 class="card-title">实时行情</h2>
+                    <div class="controls">
+                        <select id="stock-select">
+                            <option value="AAPL">苹果 (AAPL)</option>
+                            <option value="GOOGL">谷歌 (GOOGL)</option>
+                            <option value="MSFT">微软 (MSFT)</option>
+                            <option value="AMZN">亚马逊 (AMZN)</option>
+                            <option value="TSLA">特斯拉 (TSLA)</option>
+                        </select>
+                        <button id="subscribe-btn">订阅</button>
+                        <button id="unsubscribe-btn">取消订阅</button>
+                        <button id="history-btn">获取历史数据</button>
+                    </div>
+                    <div class="stock-grid" id="stock-container">
+                        <!-- 股票卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">价格走势图 <span id="chart-symbol"></span></h2>
+                    <div id="chart-container">
+                        <canvas id="price-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="card">
+                    <h2 class="card-title">系统状态</h2>
+                    <div id="connection-status" class="status disconnected">未连接</div>
+                    <button id="connect-btn" style="width:100%; margin-top:10px">连接服务器</button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">操作日志</h2>
+                    <div class="log" id="log-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Netty WebSocket 实时数据推送演示 | 学习案例 Day 18</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 客户端WebSocket实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const stockContainer = document.getElementById('stock-container');
+            const logContainer = document.getElementById('log-container');
+            const connectBtn = document.getElementById('connect-btn');
+            const statusDiv = document.getElementById('connection-status');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const unsubscribeBtn = document.getElementById('unsubscribe-btn');
+            const historyBtn = document.getElementById('history-btn');
+            const stockSelect = document.getElementById('stock-select');
+            const chartSymbol = document.getElementById('chart-symbol');
+
+            let ws = null;
+            let chart = null;
+            const subscribedStocks = new Set();
+            const priceHistory = {};
+
+            // 初始化图表
+            const chartCtx = document.getElementById('price-chart').getContext('2d');
+
+            // 连接/断开连接按钮
+            connectBtn.addEventListener('click', function() {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                } else {
+                    connectWebSocket();
+                }
+            });
+
+            // 订阅股票
+            subscribeBtn.addEventListener('click', function() {
+                const symbol = stockSelect.value;
+                subscribeToStock(symbol);
+            });
+
+            // 取消订阅
+            unsubscribeBtn.addEventListener('click', function() {
+                const symbol = stockSelect.value;
+                unsubscribeFromStock(symbol);
+            });
+
+            // 获取历史数据
+            historyBtn.addEventListener('click', function() {
+                const symbol = stockSelect.value;
+                getHistoryData(symbol, 7); // 获取7天历史数据
+            });
+
+            function connectWebSocket() {
+                // 创建WebSocket连接
+                ws = new WebSocket('ws://localhost:8088/stocks');
+
+                ws.onopen = function() {
+                    updateStatus('connected', '已连接到服务器');
+                    log('WebSocket连接已建立');
+
+                    // 重新订阅之前订阅的股票
+                    subscribedStocks.forEach(symbol => {
+                        subscribeToStock(symbol);
+                    });
+                };
+
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'update') {
+                        // 处理实时行情更新
+                        handleStockUpdate(data.data);
+                    } else if (data.type === 'history') {
+                        // 处理历史数据
+                        handleHistoryData(data);
+                    } else if (data.status === 'success') {
+                        log(data.message);
+                    } else if (data.status === 'error') {
+                        log(`错误: ${data.message}`, 'error');
+                    }
+                };
+
+                ws.onclose = function() {
+                    updateStatus('disconnected', '连接已断开');
+                    log('WebSocket连接已关闭');
+                    ws = null;
+                };
+
+                ws.onerror = function(error) {
+                    log(`连接错误: ${error}`, 'error');
+                    updateStatus('disconnected', '连接错误');
+                };
+            }
+
+            function updateStatus(status, message) {
+                statusDiv.textContent = message;
+                statusDiv.className = 'status ' + (status === 'connected' ? 'connected' : 'disconnected');
+                connectBtn.textContent = status === 'connected' ? '断开连接' : '连接服务器';
+            }
+
+            function log(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                if (type === 'error') {
+                    entry.style.color = '#d32f2f';
+                }
+
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            function subscribeToStock(symbol) {
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    log('错误: 请先连接到服务器', 'error');
+                    return;
+                }
+
+                if (subscribedStocks.has(symbol)) {
+                    log(`已订阅股票: ${symbol}`);
+                    return;
+                }
+
+                const request = {
+                    type: 'subscribe',
+                    symbol: symbol
+                };
+
+                ws.send(JSON.stringify(request));
+                subscribedStocks.add(symbol);
+            }
+
+            function unsubscribeFromStock(symbol) {
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    log('错误: 请先连接到服务器', 'error');
+                    return;
+                }
+
+                if (!subscribedStocks.has(symbol)) {
+                    log(`未订阅股票: ${symbol}`);
+                    return;
+                }
+
+                const request = {
+                    type: 'unsubscribe',
+                    symbol: symbol
+                };
+
+                ws.send(JSON.stringify(request));
+                subscribedStocks.delete(symbol);
+            }
+
+            function getHistoryData(symbol, days) {
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    log('错误: 请先连接到服务器', 'error');
+                    return;
+                }
+
+                const request = {
+                    type: 'history',
+                    symbol: symbol,
+                    days: days
+                };
+
+                ws.send(JSON.stringify(request));
+            }
+
+            function handleStockUpdate(stocks) {
+                stocks.forEach(stock => {
+                    // 更新或创建股票卡片
+                    let card = document.getElementById(`stock-${stock.symbol}`);
+
+                    if (!card) {
+                        card = document.createElement('div');
+                        card.className = 'stock-card';
+                        card.id = `stock-${stock.symbol}`;
+                        card.innerHTML = `
+                            <div class="stock-symbol">${stock.symbol}</div>
+                            <div class="stock-price">$${stock.price}</div>
+                            <div class="stock-change ${parseFloat(stock.change) >= 0 ? 'positive' : 'negative'}">
+                                ${parseFloat(stock.change) >= 0 ? '+' : ''}${stock.change} (${stock.changePercent})
+                            </div>
+                            <div class="stock-time">${new Date(parseInt(stock.timestamp)).toLocaleTimeString()}</div>
+                        `;
+                        stockContainer.appendChild(card);
+                    } else {
+                        // 更新现有卡片
+                        card.querySelector('.stock-price').textContent = `$${stock.price}`;
+
+                        const changeElement = card.querySelector('.stock-change');
+                        changeElement.textContent =
+                            `${parseFloat(stock.change) >= 0 ? '+' : ''}${stock.change} (${stock.changePercent})`;
+
+                        changeElement.className = `stock-change ${parseFloat(stock.change) >= 0 ? 'positive' : 'negative'}`;
+                        card.querySelector('.stock-time').textContent =
+                            new Date(parseInt(stock.timestamp)).toLocaleTimeString();
+                    }
+
+                    // 更新价格历史记录
+                    if (!priceHistory[stock.symbol]) {
+                        priceHistory[stock.symbol] = [];
+                    }
+
+                    priceHistory[stock.symbol].push({
+                        price: parseFloat(stock.price),
+                        timestamp: parseInt(stock.timestamp)
+                    });
+
+                    // 只保留最近100个点
+                    if (priceHistory[stock.symbol].length > 100) {
+                        priceHistory[stock.symbol].shift();
+                    }
+                });
+            }
+
+            function handleHistoryData(data) {
+                const symbol = data.symbol;
+                chartSymbol.textContent = `(${symbol})`;
+
+                // 处理历史数据
+                const history = data.data;
+                if (!history || history.length === 0) {
+                    log(`未找到 ${symbol} 的历史数据`, 'warning');
+                    return;
+                }
+
+                // 更新价格历史
+                priceHistory[symbol] = history.map(item => ({
+                    price: parseFloat(item.price),
+                    timestamp: item.timestamp
+                }));
+
+                // 显示图表
+                renderChart(symbol);
+            }
+
+            function renderChart(symbol) {
+                const history = priceHistory[symbol];
+                if (!history || history.length === 0) return;
+
+                const labels = history.map(item =>
+                    new Date(item.timestamp).toLocaleTimeString());
+                const data = history.map(item => item.price);
+
+                if (chart) {
+                    chart.destroy();
+                }
+
+                chart = new Chart(chartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `${symbol} 价格`,
+                            data: data,
+                            borderColor: '#1e88e5',
+                            backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 2,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 初始连接
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>
