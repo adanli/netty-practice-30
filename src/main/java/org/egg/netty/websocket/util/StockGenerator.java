@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class StockGenerator {
     // 每个客户端订阅的股票
-    private final Map<Channel, Set<String>> SUBSCRIPTIONS = new ConcurrentHashMap<>();
+    public final Map<Channel, Set<String>> SUBSCRIPTIONS = new ConcurrentHashMap<>();
     // 每个股票的当前价格
     private final Map<String, Double> CURRENT_PRICE = new ConcurrentHashMap<>();
     // 股票列表

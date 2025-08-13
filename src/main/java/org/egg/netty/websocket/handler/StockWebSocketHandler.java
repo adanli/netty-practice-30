@@ -16,6 +16,8 @@ import org.egg.netty.websocket.util.StockGenerator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class StockWebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     // 存储所有连接的客户端
@@ -29,6 +31,32 @@ public class StockWebSocketHandler extends SimpleChannelInboundHandler<TextWebSo
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         clients.add(ctx.channel());
         System.out.printf("客户端连接: %s%n", ctx.channel().remoteAddress());
+
+        // 定期推送注册的信息
+        ctx.executor().scheduleAtFixedRate(() -> {
+            Map<Channel, Set<String>> subscriptions = stockGenerator.SUBSCRIPTIONS;
+            StringBuilder sb = new StringBuilder("已订阅的信息: \n");
+            for (Map.Entry<Channel, Set<String>> entry: subscriptions.entrySet()) {
+                Channel channel = entry.getKey();
+                Set<String> symbols = entry.getValue();
+
+                sb.append("\t[用户: ").append(channel.remoteAddress()).append("]订阅了股票: [");
+
+                if(symbols.isEmpty()) {
+                    sb.append("]");
+                } else {
+                    sb.append(String.join(",", symbols));
+                    sb.replace(sb.length()-1, sb.length(), "]");
+                }
+
+
+            }
+
+            sendSuccess(ctx.channel(), sb.toString());
+            System.out.println(sb);
+
+        }, 10, 5, TimeUnit.SECONDS);
+
     }
 
     @Override
