@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class StockGenerator {
     // 每个客户端订阅的股票
-    public final Map<Channel, Set<String>> SUBSCRIPTIONS = new ConcurrentHashMap<>();
+    public static final Map<Channel, Set<String>> SUBSCRIPTIONS = new ConcurrentHashMap<>();
     // 每个股票的当前价格
     private final Map<String, Double> CURRENT_PRICE = new ConcurrentHashMap<>();
     // 股票列表
@@ -40,7 +40,10 @@ public class StockGenerator {
     }
 
     public void subscribe(Channel channel, String symbol) {
-        SUBSCRIPTIONS.computeIfAbsent(channel, k -> new HashSet<>()).add(symbol);
+//        SUBSCRIPTIONS.computeIfAbsent(channel, k -> new HashSet<>()).add(symbol);
+        Set<String> symbols = SUBSCRIPTIONS.computeIfAbsent(channel, k -> new HashSet<>());
+        symbols.add(symbol);
+
         System.out.println("订阅完成, 股票编号: " + symbol);
     }
 

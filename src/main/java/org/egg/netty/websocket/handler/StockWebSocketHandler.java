@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 public class StockWebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     // 存储所有连接的客户端
-    private final ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private final ChannelGroup CLIENTS = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final StockGenerator stockGenerator = new StockGenerator();
@@ -29,7 +29,7 @@ public class StockWebSocketHandler extends SimpleChannelInboundHandler<TextWebSo
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        clients.add(ctx.channel());
+        CLIENTS.add(ctx.channel());
         System.out.printf("客户端连接: %s%n", ctx.channel().remoteAddress());
 
         // 定期推送注册的信息
@@ -61,7 +61,7 @@ public class StockWebSocketHandler extends SimpleChannelInboundHandler<TextWebSo
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        clients.remove(ctx.channel());
+        CLIENTS.remove(ctx.channel());
         System.out.printf("客户端断开: %s%n", ctx.channel().remoteAddress());
     }
 
