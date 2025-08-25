@@ -70,7 +70,7 @@ public class NettyConnectionPool {
                 LOGGER.log(Level.WARNING, "health check fail", e);
             }
 
-        }, 30, 30, TimeUnit.SECONDS);
+        }, 10, 3, TimeUnit.SECONDS);
 
 
     }
@@ -86,20 +86,19 @@ public class NettyConnectionPool {
             throw new RuntimeException("超出最大的连接数量");
         }
 
+        synchronized (NettyConnectionPool.class) {
+            try {
+                Channel channel = connectionFactory.createConnection().sync().channel();
+                channel.attr(LAST_USED_TIME).set(System.currentTimeMillis());
 
-        try {
-            Channel channel = connectionFactory.createConnection().sync().channel();
-            channel.attr(LAST_USED_TIME).set(System.currentTimeMillis());
+                idleConnections.put(channel);
+                totalConnections.incrementAndGet();
 
-            idleConnections.put(channel);
-            totalConnections.incrementAndGet();
-
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "创建Channel失败", e);
-            Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "创建Channel失败", e);
+                Thread.currentThread().interrupt();
+            }
         }
-
-
     }
 
     /**

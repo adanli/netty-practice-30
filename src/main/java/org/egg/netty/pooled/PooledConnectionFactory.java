@@ -55,7 +55,7 @@ public class PooledConnectionFactory {
                             ;
                         }
                     })
-                    .option(ChannelOption.SO_BACKLOG, 128)
+//                    .option(ChannelOption.SO_BACKLOG, 128)
                     ;
 
             return bootstrap.connect(new InetSocketAddress(host, port));

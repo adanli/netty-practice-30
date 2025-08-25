@@ -17,6 +17,8 @@ public class PooledNettyClient {
         PooledNettyClient client = new PooledNettyClient("localhost", 8080);
         ExecutorService executor = Executors.newFixedThreadPool(20);
 
+        Thread.sleep(10000);
+
         // 模拟并发请求
         for (int i = 0; i < 100; i++) {
             final int requestId = i;
